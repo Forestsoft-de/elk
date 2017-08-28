@@ -5,16 +5,16 @@ filebeat:
   # List of prospectors to fetch data.
   prospectors:
     # Each - is a prospector. Below are the prospector specific configurations
-    -
+    #-
       # Paths that should be crawled and fetched. Glob based paths.
       # To fetch all ".log" files from a specific level of subdirectories
       # /var/log/*/*.log can be used.
       # For each file found under this path, a harvester is started.
       # Make sure not file is defined twice as this can lead to unexpected behaviour.
-      paths:
-        - /var/log/syslog
-        #- c:\programdata\elasticsearch\logs\*
-
+   #   paths:
+   #     - /var/log/syslog
+   #     #- c:\programdata\elasticsearch\logs\*
+   #
       # Configure the file encoding for reading files with international characters
       # following the W3C recommendation for HTML5 (http://www.w3.org/TR/encoding).
       # Some sample encodings:
@@ -22,13 +22,16 @@ filebeat:
       #    hz-gb-2312, euc-kr, euc-jp, iso-2022-jp, shift-jis, ...
       #encoding: plain
 
+      #clean_inactive: 100
+      #ignore_older: 1
+      
       # Type of the files. Based on this the way the file is read is decided.
       # The different types cannot be mixed in one prospector
       #
       # Possible options are:
       # * log: Reads every line of the log file (default)
       # * stdin: Reads the standard in
-      input_type: log
+    #  input_type: log
 
       # Exclude lines. A list of regular expressions to match. It drops the lines that are
       # matching any regular expression from the list. The include_lines is called before
@@ -69,7 +72,7 @@ filebeat:
       # Type to be published in the 'type' field. For Elasticsearch output,
       # the type defines the document type these entries should be stored
       # in. Default: log
-      document_type: syslog
+  #    document_type: syslog
 
       # Scan frequency in seconds.
       # How often these files should be checked for changes. In case it is set
@@ -86,10 +89,10 @@ filebeat:
 
       # Mutiline can be used for log messages spanning multiple lines. This is common
       # for Java Stack Traces or C-Line Continuation
-      #multiline:
+    #  multiline:
 
         # The regexp Pattern that has to be matched. The example pattern matches all lines starting with [
-        #pattern: ^\[
+   #    pattern: ^\[
 
         # Defines if the pattern set under pattern should be negated or not. Default is false.
         #negate: false
@@ -97,7 +100,7 @@ filebeat:
         # Match can be set to "after" or "before". It is used to define if lines should be append to a pattern
         # that was (not) matched before or after or as long as a pattern is not matched based on negate.
         # Note: After is the equivalent to previous and before is the equivalent to to next in Logstash
-        #match: after
+     #   match: after
 
         # The maximum number of lines that are combined to one event.
         # In case there are more the max_lines the additional lines are discarded.
@@ -144,17 +147,34 @@ filebeat:
     # Additional prospector
     -
       paths:
-        - /var/log/auth.log
+        - /vagrant/logs/*/mail*
       input_type: log
-      document_type: authlog
-      
-    # Additional prospector
+      document_type: syslog
+      exclude_files: [".gz$"]
     -
       paths:
-        - /var/log/*/*.log
+        - /vagrant/logs/*/apache2/*access*
       input_type: log
-      document_type: misc_log
-
+      document_type: apache-access
+      exclude_files: [".gz$"]
+    -
+      paths:
+        - /vagrant/logs/*/apache2/*error*
+      input_type: log
+      document_type: apache-error
+      multiline:
+        pattern: ^\[
+        negate: true
+        match: after
+      exclude_files: [".gz$"]
+      
+    # Additional prospector
+   # -
+   #   paths:
+   #     - /var/log/*/*.log
+   #   input_type: log
+   #   document_type: syslog
+   #
   # General filebeat configuration options
   #
   # Event count spool threshold - forces network flush if exceeded
@@ -187,14 +207,17 @@ filebeat:
 # Configure what outputs to use when sending the data collected by the beat.
 # Multiple outputs may be used.
 output:
-
+  #elasticsearch:
+  #  enabled: false
   ### Logstash as output
   logstash:
+    enabled: true
+    
     # The Logstash hosts
-    hosts: ["localhost:5044"]
+    hosts: ["127.0.0.1:5044"]
 
     # Number of workers per Logstash host.
-    #worker: 1
+    worker: 1
 
     # The maximum number of events to bulk into a single batch window. The
     # default is 2048.
@@ -254,9 +277,9 @@ output:
 
 
   ### Console output
-  # console:
+  #console:
     # Pretty print json event
-    #pretty: false
+    #pretty: true
 
 
 ############################# Shipper #########################################
@@ -310,7 +333,7 @@ logging:
 
   # Write all logging output to files. Beats automatically rotate files if rotateeverybytes
   # limit is reached.
-  to_files: true
+  to_files: false
 
   # To enable logging to files, to_files option has to be set to true
   files:
@@ -334,6 +357,6 @@ logging:
 
   # Sets log level. The default log level is error.
   # Available log levels are: critical, error, warning, info, debug
-  level: info
+  level: debug
 
 

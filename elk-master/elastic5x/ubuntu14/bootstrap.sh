@@ -212,6 +212,7 @@ service kibana restart 2>&1
 cd /usr/share/logstash
 service logstash stop 2>&1
 bin/logstash-plugin install x-pack
+bin/logstash-plugin install logstash-input-beats
 service logstash restart 2>&1
 sleep 30
 service elasticsearch restart 2>&1
